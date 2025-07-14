@@ -7,10 +7,13 @@ authors = ["Robert Dibble <robertdibble@live.co.uk>"]
 [tool.poetry.dependencies]
 python = ">=3.12"
 black = { version = "25.1.0", extras = ["jupyter"] }
+folium = "^0"
 ipykernel = "^6"
 isort = "6.0.1"
 mypy = "1.16.1"
 pre-commit = "^3"
+streamlit = "^1"
+streamlit-folium = "^0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
