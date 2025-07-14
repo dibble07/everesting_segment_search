@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "eversting_segment_search"
+version = "0.1.0"
+description = "Application to search for Strava segments in a map area and identify best candidates for Everesting"
+authors = ["Robert Dibble <robertdibble@live.co.uk>"]
+
+[tool.poetry.dependencies]
+python = ">=3.12"
+black = { version = "25.1.0", extras = ["jupyter"] }
+ipykernel = "^6"
+isort = "6.0.1"
+mypy = "1.16.1"
+pre-commit = "^3"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"
+
+[tool.mypy]
+ignore_missing_imports = true
+check_untyped_defs = true
+strict_optional = false
+files = '.'
