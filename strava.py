@@ -3,6 +3,7 @@ import os
 import time
 from functools import cache
 
+import numpy as np
 import pandas as pd
 import requests  # type: ignore
 
@@ -37,7 +38,7 @@ def update_token():
 
 
 @cache
-def get_segment_overview(
+def get_raw_segment_overview(
     lat_lower: float = 51.247,
     lat_upper: float = 51.259,
     long_left: float = -0.325,
@@ -84,3 +85,67 @@ def get_segment_overview(
         logging.warning(f"Error: {response.status_code} - {response.text}")
 
     return df_overview
+
+
+@cache
+def get_segment_stats(id: int) -> dict:
+    """Get everestign relevant stats
+    :param id: id of segment
+    """
+
+    # update access token
+    update_token()
+
+    # request data
+    url = f"https://www.strava.com/api/v3/segments/{id}/streams"
+    headers = {"Authorization": f"Bearer {os.environ['access_token']}"}
+    params = {"keys": "altitude", "key_by_type": True}
+    response = requests.get(url, headers=headers, params=params)
+
+    # process raw data
+    if response.status_code == 200:
+        distance = np.array(response.json()["distance"]["data"])
+        altitude = np.array(response.json()["altitude"]["data"])
+    else:
+        logging.warning(f"Error: {response.status_code} - {response.text}")
+
+    # calculate stats
+    altitude_delta = np.diff(altitude)
+    climb = np.clip(altitude_delta, 0, np.inf)
+    n_reps = int(np.ceil(8849 / climb.sum()))
+    stats = {
+        "everesting_repetitions": n_reps,
+        "everesting_distance": n_reps * float(distance[-1]) * 2 / 1000,
+    }
+
+    return stats
+
+
+def get_segment_overview(
+    lat_lower: float = 51.247,
+    lat_upper: float = 51.259,
+    long_left: float = -0.325,
+    long_right: float = -0.297,
+) -> pd.DataFrame:
+    """Get cycling climbing segments within bounding box with supplementary everesting stats
+    :param lat_lower: latitude of lower bound
+    :param lat_upper: latitude of upper bound
+    :param long_left: longitude of left bound
+    :param long_right: longitude of right bound
+    """
+
+    # get raw data
+    df = get_raw_segment_overview(
+        lat_lower=lat_lower,
+        lat_upper=lat_upper,
+        long_left=long_left,
+        long_right=long_right,
+    )
+
+    # get supplementary everesting stats
+    stats = df.index.to_series().apply(get_segment_stats).apply(pd.Series)
+
+    # join both datasets together
+    df = pd.concat([df, stats], axis=1)
+
+    return df

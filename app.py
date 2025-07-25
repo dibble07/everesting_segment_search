@@ -31,6 +31,6 @@ with col2:
             long_right=map_output["bounds"]["_northEast"]["lng"],
         )
         st.dataframe(
-            df_segments.sort_values(by="avg_grade", ascending=False),
+            df_segments.sort_values(by="everesting_distance", ascending=True),
             use_container_width=True,
         )
